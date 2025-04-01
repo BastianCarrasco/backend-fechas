@@ -9,12 +9,19 @@ app.use(express.json());
 
 const FILE_PATH = './fechas.json';
 
-// Función para leer el JSON
 const leerFechas = () => {
     try {
         const data = fs.readFileSync(FILE_PATH, 'utf8');
-        return JSON.parse(data);
+        const parsedData = JSON.parse(data);
+
+        // Si el archivo no tiene el array de fechas, inicializamos como un array vacío
+        if (!parsedData.fechas) {
+            parsedData.fechas = [];
+        }
+
+        return parsedData;
     } catch (error) {
+        // Si hay algún error (como si el archivo no existe), devolvemos un objeto con el array vacío
         return { fechas: [] };
     }
 };
@@ -27,7 +34,7 @@ const escribirFechas = (data) => {
 // Obtener todas las fechas
 app.get('/fechas', (req, res) => {
     const data = leerFechas();
-    res.json(data.fechas);
+    res.json(data);
 });
 
 // Obtener una fecha por ID
@@ -43,6 +50,8 @@ app.get('/fechas/:id', (req, res) => {
     }
 });
 
+
+
 // Crear una nueva fecha
 app.post('/fechas', (req, res) => {
     const { nombre, url, fechaInicio, fechaCierre, plataforma } = req.body;
@@ -52,12 +61,12 @@ app.post('/fechas', (req, res) => {
     const newId = data.fechas.length ? Math.max(...data.fechas.map(f => f.id)) + 1 : 1;
 
     const nuevaFecha = { 
-        id: newId,
+        id: newId, 
         nombre, 
         url, 
         fechaInicio, 
         fechaCierre, 
-        plataforma
+        plataforma 
     };
 
     data.fechas.push(nuevaFecha);
@@ -69,21 +78,14 @@ app.post('/fechas', (req, res) => {
 // Editar una fecha por ID
 app.put('/fechas/:id', (req, res) => {
     const { id } = req.params;
-    const { nombre, url, fechaInicio, fechaCierre, plataforma } = req.body;
+    const { nuevaFecha } = req.body;
     let data = leerFechas();
 
     const index = data.fechas.findIndex(fecha => fecha.id === parseInt(id));
     if (index !== -1) {
-        data.fechas[index] = {
-            id: parseInt(id),
-            nombre, 
-            url, 
-            fechaInicio, 
-            fechaCierre, 
-            plataforma
-        };
+        data.fechas[index].fecha = nuevaFecha;
         escribirFechas(data);
-        res.json({ mensaje: 'Fecha actualizada', fecha: data.fechas[index] });
+        res.json({ mensaje: 'Fecha actualizada', data });
     } else {
         res.status(404).json({ mensaje: 'Fecha no encontrada' });
     }
