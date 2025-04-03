@@ -82,21 +82,31 @@ app.post('/fechas', (req, res) => {
 });
 
 // Editar una fecha por id
+// Editar una fecha por id
 app.put('/fechas/:id', (req, res) => {
     const { id } = req.params;
-    const { nuevaFecha } = req.body;
+    const { nombre, url, fechaInicio, fechaCierre, plataforma } = req.body; 
     let data = leerFechas();
 
     const index = data.findIndex(fecha => fecha.id === parseInt(id)); // Convertimos el id a número
     if (index !== -1) {
-        // Actualizamos los campos de la fecha
-        data[index] = { ...data[index], ...nuevaFecha };
+        // Actualizamos todos los campos
+        data[index] = { 
+            ...data[index], 
+            nombre: nombre || data[index].nombre, 
+            url: url || data[index].url, 
+            fechaInicio: fechaInicio || data[index].fechaInicio, 
+            fechaCierre: fechaCierre || data[index].fechaCierre, 
+            plataforma: plataforma || data[index].plataforma 
+        };
+
         escribirFechas(data);
-        res.json({ mensaje: 'Fecha actualizada', data });
+        res.json({ mensaje: 'Fecha actualizada', fechaActualizada: data[index] });
     } else {
         res.status(404).json({ mensaje: 'Fecha no encontrada' });
     }
 });
+
 
 // Eliminar una fecha por id
 app.delete('/fechas/:id', (req, res) => {
